@@ -60,5 +60,5 @@ parami [x] = x
 
 {-
 
-odpal :set +s aby mierzyć czas wykonania wszystkiego
+odpal :set +s aby mierzyć czas wykonania wszys tkiego
 -}
