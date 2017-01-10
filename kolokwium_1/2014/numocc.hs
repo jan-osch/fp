@@ -11,4 +11,4 @@ numoccHelper element (first:rest) =
   where resultRest = numoccHelper element rest
 
 numocc2:: Eq a => a-> [[a]] ->[Int]
-numocc2 a list = map (filter ((==) a)) list
+numocc2  = (map (length)).(filter.(==)) 
