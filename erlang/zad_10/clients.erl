@@ -34,7 +34,7 @@ startA(Delays)->
   sendIds(ClientIds, []),
   sendStartToFirst(ClientIds).
 
-% Send list of ids to all processes in the list
+% Send Ids for continous loop to Clients
 sendIds([H|T], []) ->
   sendIds([H|T], T++[H]);
 
@@ -56,6 +56,7 @@ startB(Delays)->
   sendIdsReverse(ClientIds, [], []),
   sendStartToFirst(ClientIds).
 
+% Sends Ids for reversing to Clients
 sendIdsReverse([H|T], [], []) ->
   [Next|TailNext] = T++[H],
   Last = sendIdsReverse(T, TailNext, [H]),
@@ -68,7 +69,7 @@ sendIdsReverse([Id|IdTail], [Next|NextTail], [Previous]) ->
 sendIdsReverse([],[], [Previous])->
   Previous.
 
-
+% Initializes clients that will wait for ids
 start(Delays) ->
   lists:map(
       fun (D) ->
