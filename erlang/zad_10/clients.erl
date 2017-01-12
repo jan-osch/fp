@@ -2,68 +2,76 @@
 -export([
   startA/1,
   startB/1,
-  client/3
+  client/2
 ]).
 
-client(Delay, [], Reverse)->
-  io:format("Client: ~p staring with delay: ~p reverse: ~p~n", [self(), Delay, Reverse]),
+client(Delay, [])->
+  io:format("Client: ~p staring with delay: ~p~n", [self(), Delay]),
 
   receive
-    {ids, ListOfIds} ->
-        io:format("Client: ~p recieved ids: ~p~n", [self(), ListOfIds]),
-        client(Delay, ListOfIds, Reverse)
+    {ids, [Next, Previous]} ->
+        io:format("Client: ~p recieved ids~n", [self()]),
+        client(Delay, [Next, Previous])
   end;
 
-client(Delay, ListOfIds, Reverse)->
+client(Delay, [Next, Previous])->
   receive
     X ->
       io:format("Client: ~p recived: ~p~n", [self(), X]),
-      NextId = getNextId(ListOfIds, X+1),
-      sendAfter(Delay, NextId, X+1),
-
-      case (Reverse) of
-        true -> client(Delay, lists:reverse(ListOfIds), Reverse);
-        false -> client(Delay, ListOfIds, Reverse)
-      end
+      sendAfter(Delay, Next, X+1),
+      client(Delay, [Previous, Next])
   end.
-
-% Extracts element at Index (or it's remainder) from list.
-getNextId(List, Index) when Index >= length(List) ->
-  getNextId(List, Index rem length(List));
-
-getNextId([_|T], Index) when Index > 0 ->
-  getNextId(T, Index -1);
-
-getNextId([H|_], 0)->
-  H.
 
 % Sends Payload to Id after Delay
 sendAfter(Delay, Id, Payload)->
   timer:sleep(Delay * 1000),
   Id ! Payload.
 
-% Send list of ids to all processes in the list
-sendIds([H|T], ClientIds) ->
-  H ! {ids, ClientIds},
-  sendIds(T, ClientIds);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Task A
+startA(Delays)->
+  ClientIds = start(Delays),
+  sendIds(ClientIds, []),
+  sendStartToFirst(ClientIds).
 
-sendIds([], _)->
+% Send list of ids to all processes in the list
+sendIds([H|T], []) ->
+  sendIds([H|T], T++[H]);
+
+sendIds([Id|IdTail], [Next|NextTail])->
+  Id ! {ids, [Next,Next]},
+  sendIds(IdTail, NextTail);
+
+sendIds([], [])->
   ok.
 
+% Sends initial signal to start the loop
+sendStartToFirst([First| _])->
+  First ! 0.
 
-start(Reverse, Delays) ->
-  ClientIds = lists:map(
-      fun (D) ->
-        spawn(?MODULE, client, [D, [], Reverse])
-      end,
-      Delays),
-
-  sendIds(ClientIds, ClientIds),
-  [FirstId| _] = ClientIds,
-  FirstId ! 0.
-
-startA(Delays)->
-  start(false, Delays).
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Task B
 startB(Delays)->
-  start(true, Delays).
+  ClientIds = start(Delays),
+  sendIdsReverse(ClientIds, [], []),
+  sendStartToFirst(ClientIds).
+
+sendIdsReverse([H|T], [], []) ->
+  [Next|TailNext] = T++[H],
+  Last = sendIdsReverse(T, TailNext, [H]),
+  H ! {ids, [Next, Last]};
+
+sendIdsReverse([Id|IdTail], [Next|NextTail], [Previous]) ->
+  Id ! {ids, [Next, Previous]},
+  sendIdsReverse(IdTail, NextTail, [Id]);
+
+sendIdsReverse([],[], [Previous])->
+  Previous.
+
+
+start(Delays) ->
+  lists:map(
+      fun (D) ->
+        spawn(?MODULE, client, [D, []])
+      end,
+      Delays).
