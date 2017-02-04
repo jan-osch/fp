@@ -1,4 +1,6 @@
-import Utilities
+import           Data.Maybe
+import           Matrix
+import           Solution
 import           Test.Hspec
 
 matrix1 :: Matrix
@@ -13,6 +15,14 @@ matrix3 :: Matrix
 matrix3 = Matrix (1,2)[ True,
                         True]
 
+matrix4 ::Matrix
+matrix4 = fromJust $ parseMatrix "XO\nXO\n"
+
+subject1 :: Matrix
+subject1 = fromJust $ parseMatrix "OO\nOO\n"
+
+set1 ::[Matrix]
+set1 = [fromJust $ parseMatrix "X", fromJust $ parseMatrix "OX\nXX"]
 
 main :: IO ()
 main = hspec $ do
@@ -21,6 +31,8 @@ main = hspec $ do
        $ parseMatrix "XX\nOO" `shouldBe` Just matrix2
      it "should return nothing when string is invalid"
       $ parseMatrix "XXX\nO" `shouldBe` Nothing
+     it "should parse a bigger matrix from string"
+      $ maybe "" show (parseMatrix "XXXOX\nXXOOX\nXOOOX\nOOOOX\n") `shouldBe` "XXXOX\nXXOOX\nXOOOX\nOOOOX\n"
 
   describe "show" $ do
     it "#1"
@@ -55,3 +67,23 @@ main = hspec $ do
       $ merge matrix1 (0,0) matrix1 `shouldBe` Nothing
     it "should return a new valid matrix when the they both fit"
       $ fmap show (merge matrix1 (0,1) matrix3) `shouldBe` Just "XOX\nXXX\nXOO\n"
+
+    it "should return a new valid matrix #1"
+      $ merge subject1 (1,0) matrix3 `shouldBe` Just (Matrix (2,2) [False,True,False, True])
+    it "should return a new valid matrix #2"
+      $ merge subject1 (0,0) matrix3 `shouldBe` Just (Matrix (2,2) [True,False, True, False])
+    it "should return a new valid matrix #3"
+      $ merge matrix4 (1,0) matrix3 `shouldBe` Just (Matrix (2,2) [True, True, True, True])
+
+
+  describe "isMatrixFilled" $ do
+    it "should return true for a filled matrix"
+      $ isMatrixFilled matrix3 `shouldBe` True
+    it "should return false for a matrix with empty spots"
+      $ isMatrixFilled matrix1 `shouldBe` False
+
+  describe "canBeBuilt" $ do
+    it "should be able to connet two elements"
+      $ canBeBuilt subject1 (0,0) [] set1 `shouldBe` True
+    it "should be able to connet two elements, vertical"
+      $ canBeBuilt subject1 (0,0) [] [matrix3, matrix3] `shouldBe` True

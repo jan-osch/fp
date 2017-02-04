@@ -1,4 +1,4 @@
-module Utilities where
+module Matrix where
 import           Control.Applicative ()
 
 type XY = (Int,Int)
@@ -18,16 +18,19 @@ showHelper x list = chars : showHelper x (drop x list)
   where
     chars = map (\z -> if z then 'X' else 'O') $ take x list
 
+isMatrixFilled ::Matrix -> Bool
+isMatrixFilled (Matrix _ array) = and array
+
 parseMatrix::String->Maybe Matrix
 parseMatrix str = if sizeIsValid
-  then Just (Matrix (rows, columns) array)
+  then Just (Matrix (columns, rows) array)
   else Nothing
   where
     separated = lines str
     mapped = map (map (== 'X')) separated
     sizes = map length mapped
     columns = head sizes
-    rows = length mapped
+    rows = length separated
     validRows =  length $ takeWhile (==columns) sizes
     sizeIsValid = validRows == rows
     array = concat mapped
@@ -36,7 +39,7 @@ merge::Matrix ->XY-> Matrix -> Maybe Matrix
 merge (Matrix (x1,y1) array) (x,y) (Matrix (x2,y2) array2)
   | x1 < x+x2 = Nothing
   | y1 < y+y2 = Nothing
-  | otherwise = Matrix (x1,x2) <$> merged
+  | otherwise = Matrix (x1,y1) <$> merged
     where
       prepared = prepareArray (Matrix (x1,y1) array) (x,y) (Matrix (x2,y2) array2)
       merged = mergeArrays array prepared
