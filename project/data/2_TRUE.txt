@@ -1,0 +1,13 @@
+5
+2
+OOOO
+OOOO
+1
+X
+1
+XX
+2
+OXXX
+XXOO
+1
+XXX

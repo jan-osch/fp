@@ -1,6 +1,14 @@
-1
+4
 4
 XXXOX
 XXOOX
 XOOOX
 OOOOX
+2
+XXX
+XXX
+2
+OX
+XX
+1
+X

@@ -74,7 +74,8 @@ main = hspec $ do
       $ merge subject1 (0,0) matrix3 `shouldBe` Just (Matrix (2,2) [True,False, True, False])
     it "should return a new valid matrix #3"
       $ merge matrix4 (1,0) matrix3 `shouldBe` Just (Matrix (2,2) [True, True, True, True])
-
+    it "should return a new valid matrix #3"
+      $ merge (Matrix (4,2) [True,True, True, True, True, True, False, False]) (2,1) (Matrix (2,1) [True, True]) `shouldBe` Just (Matrix (4,2) [True,True, True, True, True, True, True, True])
 
   describe "isMatrixFilled" $ do
     it "should return true for a filled matrix"
